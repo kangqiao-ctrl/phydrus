@@ -1124,10 +1124,22 @@ class Model:
             lines.append(" ".join(values))
 
         lines.append("TPrint(1),TPrint(2),...,TPrint(MPL)\n")
-        for i in range(int(len(self.times) / 6.001) + 1):
+
+        nsteps = len(self.times)
+        tprint_number_of_lines = int(nsteps / 6) # Truncated number of lines for the time steps being printed
+
+        if nsteps % 6 == 0:
+            newline_not_needed = True  # No newline will be needed at the last line of tprint if no remainder
+        else:
+            newline_not_needed = False
+
+        for i in range(tprint_number_of_lines + 1):
             lines.append(
                 " ".join([str(time) for time in self.times[i * 6:i * 6 + 6]]))
-            lines.append("\n")
+            if newline_not_needed and i == tprint_number_of_lines:
+                pass
+            else:
+                lines.append("\n")
 
         # Write BLOCK D: Root Growth Information
         if self.basic_info["lRoot"]:
@@ -1426,6 +1438,8 @@ class Model:
     def read_solutes(self, fname="SOLUTE{}.OUT", solute=1):
         if solute:
             fname = fname.format(solute)
+            if fname not in os.listdir(self.ws_name):
+                fname = str.lower(fname)
         path = os.path.join(self.ws_name, fname)
         data = read_solute(path=path)
         return data
